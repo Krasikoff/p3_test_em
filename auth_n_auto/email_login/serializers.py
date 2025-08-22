@@ -5,37 +5,55 @@ from django.contrib.auth import get_user_model, authenticate
 
 User = get_user_model()
 
-class UserSerializer(serializers.ModelSerializer):
+class RegistrationSerializer(serializers.ModelSerializer):
+    """ Ощуществляет сериализацию и десериализацию объектов User при регистрации. """
     class Meta:
         fields = ( 'username', 'email', 'password', 'first_name', 'last_name',)
         model = User
 
     def to_internal_value(self, data):
+        """ Шифрует пароль перед сохранением в БД. """
         hashed = make_password(data['password'].encode('utf-8'))
         print(hashed)
         data['password'] = hashed
         return super().to_internal_value(data)
 
-class UpdateUserSerializer(serializers.ModelSerializer):
+
+class UserSerializer(serializers.ModelSerializer):
+    """ Ощуществляет сериализацию и десериализацию объектов User. """
+    password = serializers.CharField(
+        max_length=128,
+        min_length=8,
+        write_only=True
+    )
+
     class Meta:
-        fields = (
-            'username',
-            'password',
-            'first_name',
-            'last_name',
-            'email',
-        )
         model = User
+        fields = ('email', 'username', 'password', 'token','is_active')
+        read_only_fields = ('token',)
 
+    def update(self, instance, validated_data):
+        """ Выполняет обновление User. """
+        password = validated_data.pop('password', None)
+        for key, value in validated_data.items():
+            setattr(instance, key, value)
+        if password is not None:
+            instance.set_password(password)
+        instance.save()
+        return instance
 
-class DestroyUserSerializer(UserSerializer):
-    pass        
+    def delete(self, instance, validated_data):
+        """ Удаляет пользователя. """
+        for key, value in validated_data.items():
+            setattr(instance, key, value)
+        instance.save()
+        return instance
 
 class LoginSerializer(serializers.Serializer):
     """
-    Authenticates an existing user.
-    Email and password are required.
-    Returns a JSON web token.
+    Аутенфикация существующего пользователя.
+    Требуются email и password.
+    Возвращает a JSON web token.
     """
     email = serializers.EmailField(write_only=True)
     password = serializers.CharField(max_length=128, write_only=True)
@@ -44,7 +62,7 @@ class LoginSerializer(serializers.Serializer):
 
     def validate(self, data):
         """
-        Validates user data.
+        Валидация user data.
         """
         email = data.get('email', None)
         password = data.get('password', None)
@@ -70,7 +88,8 @@ class LoginSerializer(serializers.Serializer):
             raise serializers.ValidationError(
                 'This user has been deactivated.'
             )
-
         return {
+            'email': user.email,
+            'username': user.username,
             'token': user.token,
         }

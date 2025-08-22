@@ -40,6 +40,7 @@ INSTALLED_APPS = [
     'django.contrib.staticfiles',
     'rest_framework',
     'drf_yasg',
+    'rest_framework_simplejwt.token_blacklist',
 ]
 
 MIDDLEWARE = [
@@ -126,6 +127,18 @@ DEFAULT_AUTO_FIELD = 'django.db.models.BigAutoField'
 
 AUTHENTICATION_BACKENDS = ['email_login.backend.EmailLoginBackend']
 
+AUTH_USER_MODEL = 'email_login.User'
+
+REST_FRAMEWORK = {
+    'DEFAULT_AUTHENTICATION_CLASSES': (
+        'email_login.backend.JWTAuthentication',
+    ),
+}
+
+SIMPLE_JWT = {
+    'AUTH_TOKEN_CLASSES': ('email_login.token.JWTAccessToken',),
+}
+
 SWAGGER_SETTINGS = {
    'SECURITY_DEFINITIONS': {
       'Bearer': {
@@ -140,6 +153,3 @@ SWAGGER_USE_COMPAT_RENDERERS = False
 
 LOGIN_REDIRECT_URL = '/swagger/'
 LOGIN_URL = '/admin/'
-
-SALT = '34'
-
