@@ -48,7 +48,7 @@ class UpdateUserForm(forms.ModelForm):
         model = User
         fields = (
             'email', 'password', 'first_name', 'last_name', 'is_active',
-            'is_staff'
+            'is_staff', 'groups', 'user_permissions',
         )
 
     def clean_password(self):
@@ -73,8 +73,8 @@ class UserAdmin(BaseUserAdmin):
             {
                 'classes': ('wide',),
                 'fields': (
-                    'email', 'username', 'first_name', 'last_name', 'password1',
-                    'password2'
+                    'email', 'username', 'first_name', 'last_name',
+                    'password1', 'password2'
                 )
             }
         ),

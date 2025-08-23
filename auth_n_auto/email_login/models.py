@@ -2,39 +2,42 @@ import jwt
 from datetime import datetime, timedelta
 
 from django.db import models
-from django.db.models.signals import pre_delete
-from django.dispatch.dispatcher import receiver
-from django.contrib.auth.models import User
 
-from django.core.exceptions import PermissionDenied
-from django.conf import settings 
+from django.conf import settings
 from django.contrib.auth.models import (
-	AbstractBaseUser, BaseUserManager, PermissionsMixin
+    AbstractBaseUser,
+    BaseUserManager,
+    PermissionsMixin,
 )
 
 
-@receiver(pre_delete, sender=User)
-def delete_user(sender, instance, **kwargs):
-    raise PermissionDenied
-
+# @receiver(pre_delete, sender=User)
+# def delete_user(sender, instance, **kwargs):
+#     raise PermissionDenied
 
 
 class UserManager(BaseUserManager):
     def create_user(
-            self, username, email, first_name, last_name, password=None,
-            commit=True):
+        self,
+        email,
+        username,
+        first_name,
+        last_name,
+        password=None,
+        commit=True,
+    ):
         """
         Creates and saves a User with the given email, first name, last name
         and password.
         """
         if not username:
-            raise ValueError('Users must have a username')
+            raise ValueError("Users must have a username")
         if not email:
-            raise ValueError('Users must have an email address')
+            raise ValueError("Users must have an email address")
         if not first_name:
-            raise ValueError('Users must have a first name')
+            raise ValueError("Users must have a first name")
         if not last_name:
-            raise ValueError('Users must have a last name')
+            raise ValueError("Users must have a last name")
 
         user = self.model(
             username=username,
@@ -48,15 +51,17 @@ class UserManager(BaseUserManager):
             user.save(using=self._db)
         return user
 
-    def create_superuser(self, username, email, first_name, last_name, password):
+    def create_superuser(
+            self, email, username, first_name, last_name, password
+    ):
         """
         Creates and saves a superuser with the given email, first name,
         last name and password.
         """
         user = self.create_user(
-            username,
             email,
             password=password,
+            username=username,
             first_name=first_name,
             last_name=last_name,
             commit=False,
@@ -68,25 +73,32 @@ class UserManager(BaseUserManager):
 
 
 class User(AbstractBaseUser, PermissionsMixin):
-    username = models.CharField(db_index=True, max_length=255, unique=True, blank=False)
-    email = models.EmailField(
-        'email address', max_length=128, unique=True, blank=False
+    # ROLE_CHOICES = (
+    #     ('administrator', 'Administrator'),
+    #     ('manager', 'Manager'),
+    #     ('customer', 'Customer'),
+    # )
+    username = models.CharField(
+        db_index=True, max_length=255, unique=True, blank=False
     )
-    first_name = models.CharField('first name', max_length=255, blank=True)
-    last_name = models.CharField('last name', max_length=255, blank=True)
+    email = models.EmailField(
+        "email address", max_length=128, unique=True, blank=False
+    )
+    first_name = models.CharField("first name", max_length=255, blank=True)
+    last_name = models.CharField("last name", max_length=255, blank=True)
 
     is_active = models.BooleanField(
-        'active',
+        "active",
         default=True,
         help_text=(
-            'Designates whether this user should be treated as active. '
-            'Unselect this instead of deleting accounts.'
+            "Designates whether this user should be treated as active. "
+            "Unselect this instead of deleting accounts."
         ),
     )
     is_staff = models.BooleanField(
-        'staff status',
+        "staff status",
         default=False,
-        help_text='Designates whether the user can log into this admin site.'
+        help_text="Designates whether the user can log into this admin site.",
     )
     # is_superuser field provided by PermissionsMixin
     # groups field provided by PermissionsMixin
@@ -97,11 +109,11 @@ class User(AbstractBaseUser, PermissionsMixin):
 
     objects = UserManager()
 
-    USERNAME_FIELD = 'email'
-    REQUIRED_FIELDS = ['first_name', 'last_name']
+    USERNAME_FIELD = "email"
+    REQUIRED_FIELDS = ["username", "first_name", "last_name"]
 
     def __str__(self):
-        return '{} <{}>'.format(self.username, self.email)
+        return "{} <{}>".format(self.username, self.email)
 
     def has_perm(self, perm, obj=None):
         "Does the user have a specific permission?"
@@ -110,7 +122,6 @@ class User(AbstractBaseUser, PermissionsMixin):
     def has_module_perms(self, app_label):
         "Does the user have permissions to view the app `app_label`?"
         return True
-    
 
     @property
     def token(self):
@@ -130,7 +141,7 @@ class User(AbstractBaseUser, PermissionsMixin):
         return self.username
 
     def get_short_name(self):
-        """ Аналогично методу get_full_name(). """
+        """Аналогично методу get_full_name()."""
         return self.username
 
     def _generate_jwt_token(self):
@@ -140,19 +151,21 @@ class User(AbstractBaseUser, PermissionsMixin):
         """
         dt = datetime.now() + timedelta(days=7)
 
-        token = jwt.encode({
-            'id': self.pk,
-            'exp': int(dt.strftime('%s'))
-        }, settings.SECRET_KEY, algorithm='HS256')
+        token = jwt.encode(
+            {"id": self.pk, "exp": int(dt.strftime("%s"))},
+            settings.SECRET_KEY,
+            algorithm="HS256",
+        )
 
         return token
 
 
 # class BlackListedToken(models.Model):
 #     token = models.CharField(max_length=500)
-#     user = models.ForeignKey(User, related_name="token_user", on_delete=models.CASCADE)
+#     user = models.ForeignKey(
+#         User, related_name="token_user", on_delete=models.CASCADE
+#     )
 #     timestamp = models.DateTimeField(auto_now=True)
 
 #     class Meta:
 #         unique_together = ("token", "user")
-

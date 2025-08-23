@@ -5,10 +5,14 @@ from django.contrib.auth import get_user_model, authenticate
 
 User = get_user_model()
 
+
 class RegistrationSerializer(serializers.ModelSerializer):
-    """ Ощуществляет сериализацию и десериализацию объектов User при регистрации. """
+    """
+    Ощуществляет сериализацию и десериализацию объектов
+    User при регистрации.
+    """
     class Meta:
-        fields = ( 'username', 'email', 'password', 'first_name', 'last_name',)
+        fields = ('username', 'email', 'password', 'first_name', 'last_name',)
         model = User
 
     def to_internal_value(self, data):
@@ -17,6 +21,11 @@ class RegistrationSerializer(serializers.ModelSerializer):
         print(hashed)
         data['password'] = hashed
         return super().to_internal_value(data)
+
+    def to_representation(self, instance):
+        data = super().to_representation(instance)
+        data['password'] = '***'
+        return data
 
 
 class UserSerializer(serializers.ModelSerializer):
@@ -29,7 +38,7 @@ class UserSerializer(serializers.ModelSerializer):
 
     class Meta:
         model = User
-        fields = ('email', 'username', 'password', 'token','is_active')
+        fields = ('email', 'username', 'password', 'token', 'is_active')
         read_only_fields = ('token',)
 
     def update(self, instance, validated_data):
@@ -48,6 +57,7 @@ class UserSerializer(serializers.ModelSerializer):
             setattr(instance, key, value)
         instance.save()
         return instance
+
 
 class LoginSerializer(serializers.Serializer):
     """

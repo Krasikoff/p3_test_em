@@ -1,20 +1,26 @@
-from email_login.serializers import RegistrationSerializer, UserSerializer, LoginSerializer
+from email_login.serializers import (
+    RegistrationSerializer,
+    UserSerializer,
+    LoginSerializer,
+)
 from rest_framework.permissions import AllowAny, IsAuthenticated
 from rest_framework import viewsets, mixins, views, generics
 from django.contrib.auth import get_user_model
 from rest_framework import status, response
-from rest_framework_simplejwt.token_blacklist.models import OutstandingToken, BlacklistedToken
 
 
 User = get_user_model()
+
 
 class RegistrationViewSet(mixins.CreateModelMixin, viewsets.GenericViewSet):
     """
     Register for anonymous.
     """
+
     permission_classes = (AllowAny,)
     queryset = User.objects.all()
     serializer_class = RegistrationSerializer
+
     def perform_create(self, serializer):
         serializer.save()
 
@@ -23,6 +29,7 @@ class UserRetrieveUpdateAPIView(generics.RetrieveUpdateAPIView):
     """
     update, delete current user.
     """
+
     permission_classes = (IsAuthenticated,)
     serializer_class = UserSerializer
 
@@ -39,7 +46,7 @@ class UserRetrieveUpdateAPIView(generics.RetrieveUpdateAPIView):
         return response.Response(serializer.data, status=status.HTTP_200_OK)
 
     def delete(self, request, *args, **kwargs):
-        request.data['is_active'] = 'false'
+        request.data["is_active"] = "false"
         serializer = self.serializer_class(
             request.user, data=request.data, partial=True
         )
@@ -52,6 +59,7 @@ class LoginAPIView(views.APIView):
     """
     Logs in an existing user.
     """
+
     permission_classes = [AllowAny]
     serializer_class = LoginSerializer
 
@@ -63,12 +71,15 @@ class LoginAPIView(views.APIView):
 
 
 class LogoutAPIView(views.APIView):
-    permission_classes = [IsAuthenticated,]
-    def post(self, request):
-        """ Помещает в блэклист. """
-        tokens = OutstandingToken.objects.filter(user_id=request.user.id)
-        for token in tokens:
-            print(token)
-            t, _ = BlacklistedToken.objects.get_or_create(token=token)
-        return response.Response({"message": "Logged out successfully"}, status=200)
+    permission_classes = [
+        IsAuthenticated,
+    ]
 
+    def post(self, request):
+        """Помещает в блэклист."""
+        token_key = request.auth
+        print(token_key)
+        # TODO Помещает в блэклист
+        return response.Response(
+            {"message": "Logged out successfully"}, status=200
+        )
