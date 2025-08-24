@@ -40,6 +40,7 @@ INSTALLED_APPS = [
     'django.contrib.staticfiles',
     'rest_framework',
     'drf_yasg',
+    'drf_role.apps.DrfRoleConfig',
     # 'rest_framework_simplejwt.token_blacklist',
 ]
 
@@ -134,8 +135,8 @@ REST_FRAMEWORK = {
         'email_login.backend.JWTAuthentication',
     ],
     'DEFAULT_PERMISSION_CLASSES': [
-        'rest_framework.permissions.IsAuthenticatedOrReadOnly',
-    ],
+        'drf_role.permissions.BaseRolePermission',
+    ]
 }
 
 SWAGGER_SETTINGS = {

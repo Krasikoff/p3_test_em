@@ -2,6 +2,8 @@ from django import forms
 from django.contrib import admin
 from django.contrib.auth.admin import UserAdmin as BaseUserAdmin
 from django.contrib.auth.forms import ReadOnlyPasswordHashField
+from .models import Profile
+from drf_role.models import Permission, AccessControl
 
 from .models import User
 
@@ -56,6 +58,10 @@ class UpdateUserForm(forms.ModelForm):
         return self.initial["password"]
 
 
+class ProfileInline(admin.StackedInline):
+    model = Profile
+
+
 class UserAdmin(BaseUserAdmin):
     form = UpdateUserForm
     add_form = AddUserForm
@@ -82,6 +88,10 @@ class UserAdmin(BaseUserAdmin):
     search_fields = ('email', 'username', 'first_name', 'last_name')
     ordering = ('email', 'username', 'first_name', 'last_name')
     filter_horizontal = ()
+    inlines = [ProfileInline,]
 
 
 admin.site.register(User, UserAdmin)
+
+admin.site.register(Permission)
+admin.site.register(AccessControl)

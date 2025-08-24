@@ -9,7 +9,7 @@ from django.contrib.auth.models import (
     BaseUserManager,
     PermissionsMixin,
 )
-
+from drf_role.models import Role
 
 # @receiver(pre_delete, sender=User)
 # def delete_user(sender, instance, **kwargs):
@@ -73,11 +73,6 @@ class UserManager(BaseUserManager):
 
 
 class User(AbstractBaseUser, PermissionsMixin):
-    # ROLE_CHOICES = (
-    #     ('administrator', 'Administrator'),
-    #     ('manager', 'Manager'),
-    #     ('customer', 'Customer'),
-    # )
     username = models.CharField(
         db_index=True, max_length=255, unique=True, blank=False
     )
@@ -158,6 +153,11 @@ class User(AbstractBaseUser, PermissionsMixin):
         )
 
         return token
+
+
+class Profile(models.Model):
+    user = models.OneToOneField(User, on_delete=models.CASCADE)
+    role = models.ForeignKey(Role, on_delete=models.CASCADE)
 
 
 # class BlackListedToken(models.Model):
