@@ -1,0 +1,10 @@
+{
+    "data":{
+        "goods":{
+            "id": "1",
+            "name": "Product",
+            "price": "500",
+            "currency": "руб."
+        }
+    }
+}
