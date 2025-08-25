@@ -5,11 +5,10 @@ from rest_framework.generics import (
     UpdateAPIView,
 )
 
-
 from .mixins import FileMockResponseMixin
 
 
-class MockListAPIView(ListAPIView, FileMockResponseMixin):
+class MockListAPIView(FileMockResponseMixin, ListAPIView):
     queryset = []
     serializer_class = None
 

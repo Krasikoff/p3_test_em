@@ -19,7 +19,9 @@ class FileMockResponseMixin:
         if not self.json_filename:
             raise ValueError("json_filename must be defined.")
         app_name = self.get_app_name()
-        return os.path.join(settings.BASE_DIR, app_name, "json_mock", self.json_filename)
+        return os.path.join(
+            settings.BASE_DIR, app_name, "json_mock", self.json_filename
+        )
 
     def get_mock_data(self):
         file_path = self.get_mock_file_path()

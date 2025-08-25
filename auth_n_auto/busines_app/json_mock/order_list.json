@@ -1,0 +1,12 @@
+{
+    "data":{
+        "order":{
+            "id": "1",
+            "name": "Product",
+            "price": "500",
+            "currency": "руб.",
+            "amount": "10",
+            "unit": "шт."
+        }
+    }
+}
