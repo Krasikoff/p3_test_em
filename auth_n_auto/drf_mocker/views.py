@@ -1,9 +1,15 @@
-from rest_framework.generics import DestroyAPIView, ListAPIView, RetrieveAPIView, UpdateAPIView
+from rest_framework.generics import (
+    DestroyAPIView,
+    ListAPIView,
+    RetrieveAPIView,
+    UpdateAPIView,
+)
+
 
 from .mixins import FileMockResponseMixin
 
 
-class MockListAPIView(FileMockResponseMixin, ListAPIView):
+class MockListAPIView(ListAPIView, FileMockResponseMixin):
     queryset = []
     serializer_class = None
 
