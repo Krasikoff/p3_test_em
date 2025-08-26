@@ -5,7 +5,6 @@ from rest_framework.permissions import SAFE_METHODS, BasePermission
 from drf_role.enums import RoleEnum, PermissionEnum
 from drf_role.models import AccessControl
 
-
 class IsAdminOrNoAccess(permissions.IsAuthenticated):
     def has_permission(self, request, view):
         try:
@@ -20,11 +19,7 @@ class BaseRolePermission(BasePermission):
     @staticmethod
     def permission_analyzer(request=None, view=None):
         """
-        This will help to analyze the permissions and model object level
-        permission
-        :param request: django default request
-        :param view: ViewClass of each view in MVC it's (C)Controller
-        :return:
+        Analyze the permissions and model object level permission
         """
         try:
             user = request.user

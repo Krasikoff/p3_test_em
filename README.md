@@ -31,10 +31,9 @@ python manage.py runserver
     - правилах доступа: в админке в Access controls можно добавить правила, которые будут выполнятся. Они касаются только бизнес объектов. То же можно сделать через /api/v1/drf-role/ роутеры. Исключения: правила доступа этим роутерам и роутерам аутенфикации. Их изменить нельзя, т.к они жестко привязаны в коде. Потестить postman-ом бизнес-объект Products можно в business_app.
     
     Принцип работы проверки пермишинов в drf_role/permissions.py: 
-    IsAdminOrNoAccess и BaseRolePermission.
-    IsAdminOrNoAccess применен к /api/v1/drf-role/
-    BaseRolePermission по умолчению в настройках django. Основная работа по анализу соответствия установленным правилам доступа пользователя к business/<какой-то url> происходит в этом пермишене. 
-    пример, если завести такие данные в БД через админку, drf, с постмана сделать запрос к /business/products/ результат обращения будет следующий:
+    IsAdminOrNoAccess применен к /api/v1/drf-role/ - изменяется только программно 
+    BaseRolePermission по умолчению в настройках django можно менять через админку или drf-role routers. Основная работа по анализу соответствия установленным правилам доступа пользователя к business/<какой-то url> происходит в этом пермишене. 
+    пример, если завести соответствующие данные в БД через админку, drf, с постмана сделать запрос к /business/products/ результат обращения в cli будет следующий:
     ```shell
     permission_classes = [<class 'drf_role.permissions.BaseRolePermission'>]
     user = DanDm <Dan@ya.ru>
@@ -42,4 +41,23 @@ python manage.py runserver
     url_name = products-detail
     permission = NO_ACCESS
     ```
-    - drf-mocker - позволил реализовать busines_app c mock-view products для теста postman-ом. Почему-то при правильном выводе отрабатывании достпа, запрет не срабатывает.  
+    постман покажет:
+    ```shell
+    403 "detail": "Authentication credentials were not provided."
+    ```
+
+    после исправления через админку или drf-role/accesses/ на access_type на 0 (READ) (необходимо быть в админке админом, через drf роль админ.)
+    
+    повторим запрос и увидим:
+    ```shell
+    {
+        "data": "Product_data"
+    }
+    ```
+
+
+
+
+
+    PS.  Сделано как MVP. При решении пользовался активно интернетом...
+    

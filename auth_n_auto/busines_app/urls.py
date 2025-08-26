@@ -1,11 +1,12 @@
-from django.urls import path, include
-from .views.mocks import ProductListMock, OrderListView
-from rest_framework.routers import DefaultRouter
+from django.urls import path
+from .views.mocks import ProductListView, OrderListView, StoreListView
 
-router_v1 = DefaultRouter()
-router_v1.register('products', ProductListMock, basename='products')
 
 urlpatterns = [
-    path('', include(router_v1.urls), name='busines'),
+    path(
+        "product/",
+        ProductListView.as_view(),
+    ),
     path("order/", OrderListView.as_view()),
+    path("store/", StoreListView.as_view()),
 ]

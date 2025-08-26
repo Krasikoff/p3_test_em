@@ -23,7 +23,6 @@ class Permission(models.Model):
     )
 
     def __str__(self):
-        # Retrieve the enum variable. Ex: CREATE, VIEW, ...
         return PermissionEnum(self.access_type).name
 
 

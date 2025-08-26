@@ -12,9 +12,6 @@ from email_login.views import (
 
 router_v1 = DefaultRouter()
 router_v1.register('registration', RegistrationViewSet, basename='registration')
-#router_v1.register('logout', JWTAccessToken, basename='logout')
-# router_v1.register('delete_user', DestroyUserViewSet, basename='delete_user')
-
 
 urlpatterns = [
     path('v1/', include(router_v1.urls), name='api-root'),

@@ -60,7 +60,7 @@ class AllUrlList(APIView):
 
     def get(self, request, *args, **kwargs):
         data = {
-            "url_names": get_urls()  # it will be a list
+            "url_names": get_urls()
         }
         serializer = AllViewListSerializer(data=data)
         if serializer.is_valid(raise_exception=True):
