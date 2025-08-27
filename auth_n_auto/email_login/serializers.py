@@ -2,6 +2,7 @@ from django.contrib.auth.hashers import make_password
 from rest_framework import serializers
 from django.contrib.auth import get_user_model, authenticate
 
+from .models import BlackListedToken
 
 User = get_user_model()
 
@@ -18,7 +19,6 @@ class RegistrationSerializer(serializers.ModelSerializer):
     def to_internal_value(self, data):
         """ Шифрует пароль перед сохранением в БД. """
         hashed = make_password(data['password'].encode('utf-8'))
-        print(hashed)
         data['password'] = hashed
         return super().to_internal_value(data)
 
@@ -103,3 +103,10 @@ class LoginSerializer(serializers.Serializer):
             'username': user.username,
             'token': user.token,
         }
+
+
+class LogoutSerializer(serializers.ModelSerializer):
+
+    class Meta:
+        model = BlackListedToken
+        exclude = ()

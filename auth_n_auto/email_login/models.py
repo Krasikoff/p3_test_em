@@ -160,12 +160,12 @@ class Profile(models.Model):
     role = models.ForeignKey(Role, on_delete=models.CASCADE)
 
 
-# class BlackListedToken(models.Model):
-#     token = models.CharField(max_length=500)
-#     user = models.ForeignKey(
-#         User, related_name="token_user", on_delete=models.CASCADE
-#     )
-#     timestamp = models.DateTimeField(auto_now=True)
+class BlackListedToken(models.Model):
+    token = models.CharField(max_length=500)
+    user = models.ForeignKey(
+        User, related_name="token_user", on_delete=models.CASCADE
+    )
+    timestamp = models.DateTimeField(auto_now=True)
 
-#     class Meta:
-#         unique_together = ("token", "user")
+    class Meta:
+        unique_together = ("token", "user")

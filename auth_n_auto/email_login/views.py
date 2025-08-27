@@ -2,6 +2,7 @@ from email_login.serializers import (
     RegistrationSerializer,
     UserSerializer,
     LoginSerializer,
+    LogoutSerializer,
 )
 from rest_framework.permissions import AllowAny, IsAuthenticated
 from rest_framework import viewsets, mixins, views, generics
@@ -59,7 +60,6 @@ class LoginAPIView(views.APIView):
     """
     Logs in an existing user.
     """
-
     permission_classes = [AllowAny]
     serializer_class = LoginSerializer
 
@@ -71,15 +71,17 @@ class LoginAPIView(views.APIView):
 
 
 class LogoutAPIView(views.APIView):
-    permission_classes = [
-        IsAuthenticated,
-    ]
+    """
+    Logs out an existing user.
+    """
+    permission_classes = [IsAuthenticated]
+    serializer_class = LogoutSerializer
 
     def post(self, request):
         """Помещает в блэклист."""
-        token_key = request.auth
-        print(token_key)
-        # TODO Помещает в блэклист
+        serializer = self.serializer_class(data={"token": request.auth, "user": request.user.id})
+        serializer.is_valid(raise_exception=True)
+        serializer.save()
         return response.Response(
             {"message": "Logged out successfully"}, status=200
         )
