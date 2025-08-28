@@ -14,58 +14,71 @@ class RegistrationSerializer(serializers.ModelSerializer):
     Ощуществляет сериализацию и десериализацию объектов
     User при регистрации.
     """
-    password_chk = serializers.SerializerMethodField('confirm_password')
 
-    def validate(self, attrs ):
-        password_chk = self.initial_data.get('password_chk', None)
-        password = self.initial_data.get('password', None)
+    password_chk = serializers.SerializerMethodField("confirm_password")
+
+    def validate(self, attrs):
+        password_chk = self.initial_data.get("password_chk", None)
+        password = self.initial_data.get("password", None)
         if password and password_chk and password != password_chk:
-            raise serializers.ValidationError(
-                'Passwords do not match.'
-            )
+            raise serializers.ValidationError("Passwords do not match.")
         return super().validate(attrs)
 
     def confirm_password(self, instance):
-        return self.initial_data['password']
+        return self.initial_data["password"]
 
     class Meta:
-        fields = ('username', 'email', 'password', 'password_chk', 'first_name', 'last_name',)
+        fields = (
+            "username",
+            "email",
+            "password",
+            "password_chk",
+            "first_name",
+            "last_name",
+        )
         model = User
 
     def to_internal_value(self, data):
-        """ Шифрует пароль перед сохранением в БД. """
-        if data['password'] == data['password_chk']:
-            data['password_chk'] = data['password'] = make_password(data['password'].encode('utf-8'))
+        """Шифрует пароль перед сохранением в БД."""
+        if data["password"] == data["password_chk"]:
+            data["password_chk"] = data["password"] = make_password(
+                data["password"].encode("utf-8")
+            )
         else:
-            data['password'] = make_password(data['password'].encode('utf-8'))
+            data["password"] = make_password(data["password"].encode("utf-8"))
         return super().to_internal_value(data)
 
     def to_representation(self, instance):
         data = super().to_representation(instance)
-        data['password_chk'] = data['password'] = '***'
-        data['id'] = instance.id
+        data["password_chk"] = data["password"] = "***"
+        print(instance.id)
+        data["id"] = instance.id
         return data
 
 
+class ProfileSerializer(serializers.ModelSerializer):
+    class Meta:
+        model = Profile
+        fields = all
+
+
 class UserSerializer(serializers.ModelSerializer):
-    """ Ощуществляет сериализацию и десериализацию объектов User. """
+    """Ощуществляет сериализацию и десериализацию объектов User."""
+
     role = serializers.SerializerMethodField("change_role")
-    password = serializers.CharField(
-        max_length=128,
-        min_length=8,
-        write_only=True
-    )
+    password = serializers.CharField(max_length=128, min_length=8, write_only=True)
+
     class Meta:
         model = User
-        fields = ('email', 'username', 'password', 'role', 'token', 'is_active')
-        read_only_fields = ('token',)
+        fields = ("email", "username", "password", "role", "token", "is_active")
+        read_only_fields = ("token",)
 
     def change_role(self, instance):
         profile = Profile.objects.get(user=instance)
         print(profile.user)
         print(self.initial_data)
         try:
-            role_instance = Role.objects.get(name=self.initial_data['role'])
+            role_instance = Role.objects.get(name=self.initial_data["role"])
             print(role_instance.name)
         except Exception as e:
             print(e)
@@ -75,23 +88,21 @@ class UserSerializer(serializers.ModelSerializer):
             profile.save()
         except Exception as e:
             print(e)
-        return  profile.role.name
+        return profile.role.name
 
     def update(self, instance, validated_data):
-        """ Выполняет обновление User. """
-        password = validated_data.pop('password', None)
+        """Выполняет обновление User."""
+        password = validated_data.pop("password", None)
         for key, value in validated_data.items():
             setattr(instance, key, value)
         if password is not None:
             instance.set_password(password)
         instance.save()
-        
-        
+
         return instance
-    
 
     def delete(self, instance, validated_data):
-        """ Удаляет пользователя. """
+        """Удаляет пользователя."""
         for key, value in validated_data.items():
             setattr(instance, key, value)
         instance.save()
@@ -104,6 +115,7 @@ class LoginSerializer(serializers.Serializer):
     Требуются email и password.
     Возвращает a JSON web token.
     """
+
     email = serializers.EmailField(write_only=True)
     password = serializers.CharField(max_length=128, write_only=True)
     username = serializers.CharField(max_length=255, read_only=True)
@@ -113,38 +125,31 @@ class LoginSerializer(serializers.Serializer):
         """
         Валидация user data.
         """
-        email = data.get('email', None)
-        password = data.get('password', None)
+        email = data.get("email", None)
+        password = data.get("password", None)
 
         if email is None:
-            raise serializers.ValidationError(
-                'An email address is required to log in.'
-            )
+            raise serializers.ValidationError("An email address is required to log in.")
 
         if password is None:
-            raise serializers.ValidationError(
-                'A password is required to log in.'
-            )
+            raise serializers.ValidationError("A password is required to log in.")
 
         user = authenticate(username=email, password=password)
 
         if user is None:
             raise serializers.ValidationError(
-                'A user with this email and password was not found.'
+                "A user with this email and password was not found."
             )
 
         if not user.is_active:
-            raise serializers.ValidationError(
-                'This user has been deactivated.'
-            )
+            raise serializers.ValidationError("This user has been deactivated.")
         return {
-            'username': user.username,
-            'token': user.token,
+            "username": user.username,
+            "token": user.token,
         }
 
 
 class LogoutSerializer(serializers.ModelSerializer):
-
     class Meta:
         model = BlackListedToken
         exclude = ()

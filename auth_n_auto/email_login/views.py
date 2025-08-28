@@ -10,8 +10,8 @@ from rest_framework import viewsets, mixins, views, generics
 from django.contrib.auth import get_user_model
 from rest_framework import status, response
 from .models import BlackListedToken, Profile
-
-
+from drf_role.models import Role
+from drf_role.enums import RoleEnum
 
 User = get_user_model()
 
@@ -25,10 +25,11 @@ class RegistrationViewSet(mixins.CreateModelMixin, viewsets.GenericViewSet):
     queryset = User.objects.all()
     serializer_class = RegistrationSerializer
 
-    def perform_create(self, serializer):
-        print(serializer.data.id)
-        Profile.objects.create(user=serializer.data.id)
+    def perform_create(self, serializer):        
         serializer.save()
+        user_for_profile = User.objects.get(id=serializer.data['id'])
+        role = Role.objects.get(name=RoleEnum.Buyer.name)
+        Profile.objects.get_or_create(user=user_for_profile, role=role)
 
 
 class UserRetrieveUpdateAPIView(generics.RetrieveUpdateAPIView):

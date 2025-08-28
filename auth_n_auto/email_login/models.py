@@ -159,7 +159,8 @@ class User(AbstractBaseUser, PermissionsMixin):
 
 class Profile(models.Model):
     user = models.OneToOneField(User, on_delete=models.CASCADE)
-    role = models.ForeignKey(Role, on_delete=models.CASCADE, default=RoleEnum.Buyer)
+    role = models.ForeignKey(Role, on_delete=models.CASCADE, default=2)  
+    # Buyer
 
 
 class BlackListedToken(models.Model):
