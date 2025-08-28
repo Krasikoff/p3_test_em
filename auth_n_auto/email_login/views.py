@@ -4,10 +4,12 @@ from email_login.serializers import (
     LoginSerializer,
     LogoutSerializer,
 )
+from django.db import DatabaseError
 from rest_framework.permissions import AllowAny, IsAuthenticated
 from rest_framework import viewsets, mixins, views, generics
 from django.contrib.auth import get_user_model
 from rest_framework import status, response
+from .models import BlackListedToken
 
 
 User = get_user_model()
@@ -66,7 +68,10 @@ class LoginAPIView(views.APIView):
     def post(self, request):
         serializer = self.serializer_class(data=request.data)
         serializer.is_valid(raise_exception=True)
-
+        try:
+            BlackListedToken.objects.filter(user__username=serializer.data['username']).prefetch_related().delete()
+        except DatabaseError as e:
+            print(e)
         return response.Response(serializer.data, status=status.HTTP_200_OK)
 
 

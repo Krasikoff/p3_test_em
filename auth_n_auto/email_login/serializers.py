@@ -99,7 +99,6 @@ class LoginSerializer(serializers.Serializer):
                 'This user has been deactivated.'
             )
         return {
-            'email': user.email,
             'username': user.username,
             'token': user.token,
         }

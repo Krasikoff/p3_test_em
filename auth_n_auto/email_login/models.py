@@ -125,6 +125,7 @@ class User(AbstractBaseUser, PermissionsMixin):
         user._generate_jwt_token(). Декоратор @property выше делает это
         возможным. token называется "динамическим свойством".
         """
+        
         return self._generate_jwt_token()
 
     def get_full_name(self):
@@ -163,7 +164,7 @@ class Profile(models.Model):
 class BlackListedToken(models.Model):
     token = models.CharField(max_length=500)
     user = models.ForeignKey(
-        User, related_name="token_user", on_delete=models.CASCADE
+        User, related_name="token_user", on_delete=models.CASCADE, unique=False,
     )
     timestamp = models.DateTimeField(auto_now=True)
 

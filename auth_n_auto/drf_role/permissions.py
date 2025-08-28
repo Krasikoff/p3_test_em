@@ -1,6 +1,7 @@
 from django.urls import resolve
 from rest_framework import permissions
 from rest_framework.permissions import SAFE_METHODS, BasePermission
+from rest_framework.exceptions import NotAuthenticated
 
 from drf_role.enums import RoleEnum, PermissionEnum
 from drf_role.models import AccessControl
@@ -24,7 +25,7 @@ class IsAdminOrNoAccess(permissions.IsAuthenticated):
 
     def has_permission(self, request, view):
         if not self.is_token_valid(request=request):
-            return False
+            raise NotAuthenticated
         try:
             return request.user.profile.role.type == RoleEnum.Admin.value
         except AttributeError:
@@ -82,13 +83,13 @@ class BaseRolePermission(BasePermission):
                 is_allowed_user = False
         except BlackListedToken.DoesNotExist:
             is_allowed_user = True
+        print(is_allowed_user)
         return is_allowed_user
 
 
     def has_permission(self, request, view):
-        print('999999999999')
         if not self.is_token_valid(request=request):
-            return False
+            raise NotAuthenticated
         return self.permission_analyzer(request=request)
 
     def has_object_permission(self, request, view, obj):
