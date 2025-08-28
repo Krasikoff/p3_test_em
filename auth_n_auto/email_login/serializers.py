@@ -1,8 +1,10 @@
 from django.contrib.auth.hashers import make_password
 from rest_framework import serializers
 from django.contrib.auth import get_user_model, authenticate
+from django.db import DataError
 
-from .models import BlackListedToken
+from .models import BlackListedToken, Profile
+from drf_role.models import Role
 
 User = get_user_model()
 
@@ -41,21 +43,39 @@ class RegistrationSerializer(serializers.ModelSerializer):
     def to_representation(self, instance):
         data = super().to_representation(instance)
         data['password_chk'] = data['password'] = '***'
+        data['id'] = instance.id
         return data
 
 
 class UserSerializer(serializers.ModelSerializer):
     """ Ощуществляет сериализацию и десериализацию объектов User. """
+    role = serializers.SerializerMethodField("change_role")
     password = serializers.CharField(
         max_length=128,
         min_length=8,
         write_only=True
     )
-
     class Meta:
         model = User
-        fields = ('email', 'username', 'password', 'token', 'is_active')
+        fields = ('email', 'username', 'password', 'role', 'token', 'is_active')
         read_only_fields = ('token',)
+
+    def change_role(self, instance):
+        profile = Profile.objects.get(user=instance)
+        print(profile.user)
+        print(self.initial_data)
+        try:
+            role_instance = Role.objects.get(name=self.initial_data['role'])
+            print(role_instance.name)
+        except Exception as e:
+            print(e)
+            raise DataError
+        profile.role = role_instance
+        try:
+            profile.save()
+        except Exception as e:
+            print(e)
+        return  profile.role.name
 
     def update(self, instance, validated_data):
         """ Выполняет обновление User. """
@@ -65,7 +85,10 @@ class UserSerializer(serializers.ModelSerializer):
         if password is not None:
             instance.set_password(password)
         instance.save()
+        
+        
         return instance
+    
 
     def delete(self, instance, validated_data):
         """ Удаляет пользователя. """

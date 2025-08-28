@@ -9,7 +9,8 @@ from rest_framework.permissions import AllowAny, IsAuthenticated
 from rest_framework import viewsets, mixins, views, generics
 from django.contrib.auth import get_user_model
 from rest_framework import status, response
-from .models import BlackListedToken
+from .models import BlackListedToken, Profile
+
 
 
 User = get_user_model()
@@ -25,6 +26,8 @@ class RegistrationViewSet(mixins.CreateModelMixin, viewsets.GenericViewSet):
     serializer_class = RegistrationSerializer
 
     def perform_create(self, serializer):
+        print(serializer.data.id)
+        Profile.objects.create(user=serializer.data.id)
         serializer.save()
 
 
