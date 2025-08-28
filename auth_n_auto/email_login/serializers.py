@@ -12,19 +12,35 @@ class RegistrationSerializer(serializers.ModelSerializer):
     Ощуществляет сериализацию и десериализацию объектов
     User при регистрации.
     """
+    password_chk = serializers.SerializerMethodField('confirm_password')
+
+    def validate(self, attrs ):
+        password_chk = self.initial_data.get('password_chk', None)
+        password = self.initial_data.get('password', None)
+        if password and password_chk and password != password_chk:
+            raise serializers.ValidationError(
+                'Passwords do not match.'
+            )
+        return super().validate(attrs)
+
+    def confirm_password(self, instance):
+        return self.initial_data['password']
+
     class Meta:
-        fields = ('username', 'email', 'password', 'first_name', 'last_name',)
+        fields = ('username', 'email', 'password', 'password_chk', 'first_name', 'last_name',)
         model = User
 
     def to_internal_value(self, data):
         """ Шифрует пароль перед сохранением в БД. """
-        hashed = make_password(data['password'].encode('utf-8'))
-        data['password'] = hashed
+        if data['password'] == data['password_chk']:
+            data['password_chk'] = data['password'] = make_password(data['password'].encode('utf-8'))
+        else:
+            data['password'] = make_password(data['password'].encode('utf-8'))
         return super().to_internal_value(data)
 
     def to_representation(self, instance):
         data = super().to_representation(instance)
-        data['password'] = '***'
+        data['password_chk'] = data['password'] = '***'
         return data
 
 

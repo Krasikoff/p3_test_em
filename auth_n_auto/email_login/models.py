@@ -10,6 +10,7 @@ from django.contrib.auth.models import (
     PermissionsMixin,
 )
 from drf_role.models import Role
+from drf_role.enums import RoleEnum
 
 # @receiver(pre_delete, sender=User)
 # def delete_user(sender, instance, **kwargs):
@@ -158,7 +159,7 @@ class User(AbstractBaseUser, PermissionsMixin):
 
 class Profile(models.Model):
     user = models.OneToOneField(User, on_delete=models.CASCADE)
-    role = models.ForeignKey(Role, on_delete=models.CASCADE)
+    role = models.ForeignKey(Role, on_delete=models.CASCADE, default=RoleEnum.Buyer)
 
 
 class BlackListedToken(models.Model):
