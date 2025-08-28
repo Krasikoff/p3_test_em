@@ -10,7 +10,6 @@ from django.contrib.auth.models import (
     PermissionsMixin,
 )
 from drf_role.models import Role
-from drf_role.enums import RoleEnum
 
 # @receiver(pre_delete, sender=User)
 # def delete_user(sender, instance, **kwargs):
@@ -52,9 +51,7 @@ class UserManager(BaseUserManager):
             user.save(using=self._db)
         return user
 
-    def create_superuser(
-            self, email, username, first_name, last_name, password
-    ):
+    def create_superuser(self, email, username, first_name, last_name, password):
         """
         Creates and saves a superuser with the given email, first name,
         last name and password.
@@ -74,12 +71,8 @@ class UserManager(BaseUserManager):
 
 
 class User(AbstractBaseUser, PermissionsMixin):
-    username = models.CharField(
-        db_index=True, max_length=255, unique=True, blank=False
-    )
-    email = models.EmailField(
-        "email address", max_length=128, unique=True, blank=False
-    )
+    username = models.CharField(db_index=True, max_length=255, unique=True, blank=False)
+    email = models.EmailField("email address", max_length=128, unique=True, blank=False)
     first_name = models.CharField("first name", max_length=255, blank=True)
     last_name = models.CharField("last name", max_length=255, blank=True)
 
@@ -126,7 +119,6 @@ class User(AbstractBaseUser, PermissionsMixin):
         user._generate_jwt_token(). Декоратор @property выше делает это
         возможным. token называется "динамическим свойством".
         """
-        
         return self._generate_jwt_token()
 
     def get_full_name(self):
@@ -149,7 +141,7 @@ class User(AbstractBaseUser, PermissionsMixin):
         dt = datetime.now() + timedelta(days=7)
 
         token = jwt.encode(
-            {"id": self.pk, "exp": int(dt.strftime("%s"))},
+            {"id": self.pk, "exp": int(dt.timestamp())},
             settings.SECRET_KEY,
             algorithm="HS256",
         )
@@ -159,14 +151,16 @@ class User(AbstractBaseUser, PermissionsMixin):
 
 class Profile(models.Model):
     user = models.OneToOneField(User, on_delete=models.CASCADE)
-    role = models.ForeignKey(Role, on_delete=models.CASCADE, default=2)  
-    # Buyer
+    role = models.ForeignKey(Role, on_delete=models.CASCADE)
 
 
 class BlackListedToken(models.Model):
     token = models.CharField(max_length=500)
     user = models.ForeignKey(
-        User, related_name="token_user", on_delete=models.CASCADE, unique=False,
+        User,
+        related_name="token_user",
+        on_delete=models.CASCADE,
+        unique=False,
     )
     timestamp = models.DateTimeField(auto_now=True)
 
