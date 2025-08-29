@@ -6,6 +6,12 @@ from rest_framework import authentication, exceptions
 from .models import User
 
 
+class AuthenticationFailed(exceptions.APIException):
+    status_code = 401
+    default_detail = "Authentication failed."
+
+
+
 class EmailLoginBackend(ModelBackend):
     def authenticate(self, request, username=None, password=None, **kwargs):
         UserModel = get_user_model()
@@ -65,16 +71,16 @@ class JWTAuthentication(authentication.BaseAuthentication):
             payload = jwt.decode(token, settings.SECRET_KEY, algorithms='HS256')
         except Exception:
             msg = 'Ошибка аутентификации. Невозможно декодировать токен.'
-            raise exceptions.AuthenticationFailed(msg)
+            raise AuthenticationFailed(msg)
 
         try:
             user = User.objects.get(pk=payload['id'])
         except User.DoesNotExist:
             msg = 'Пользователь соответствующий данному токену не найден.'
-            raise exceptions.AuthenticationFailed(msg)
+            raise AuthenticationFailed(msg)
 
         if not user.is_active:
             msg = 'Данный пользователь деактивирован.'
-            raise exceptions.AuthenticationFailed(msg)
+            raise AuthenticationFailed(msg)
 
         return (user, token)

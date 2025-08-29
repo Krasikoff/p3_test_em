@@ -10,6 +10,7 @@ from django.contrib.auth.models import (
     PermissionsMixin,
 )
 from drf_role.models import Role
+from drf_role.enums import RoleEnum
 
 # @receiver(pre_delete, sender=User)
 # def delete_user(sender, instance, **kwargs):
@@ -49,6 +50,7 @@ class UserManager(BaseUserManager):
         user.set_password(password)
         if commit:
             user.save(using=self._db)
+
         return user
 
     def create_superuser(self, email, username, first_name, last_name, password):
@@ -67,6 +69,20 @@ class UserManager(BaseUserManager):
         user.is_staff = True
         user.is_superuser = True
         user.save(using=self._db)
+
+        try:
+            role = Role.objects.get(name=RoleEnum.Admin.name)
+        except Exception as e:
+            print(e)
+            print(
+                'Проверьте выполнение django shell команды role_init.'
+                ' Drf role Admin для пользователя не назначена!!!'
+                ' Роль можно добавить потом через admin page.'
+            )
+        profile  = Profile.objects.create(user=user, role=role)
+        if profile:
+            print(f'Роль {profile.role.name} назначена пользователю {user}')
+
         return user
 
 

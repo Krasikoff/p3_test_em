@@ -1,11 +1,16 @@
 from django.urls import resolve
 from rest_framework import permissions
 from rest_framework.permissions import SAFE_METHODS, BasePermission
-from rest_framework.exceptions import NotAuthenticated
+from rest_framework.exceptions import NotAuthenticated, APIException
 
 from drf_role.enums import RoleEnum, PermissionEnum
 from drf_role.models import AccessControl
 from email_login.models import BlackListedToken
+
+
+class UnauthorizedException(APIException):
+    status_code = 401
+    default_detail = "Authentication credentials were not provided."
 
 
 class IsAdminOrNoAccess(permissions.IsAuthenticated):
@@ -24,6 +29,8 @@ class IsAdminOrNoAccess(permissions.IsAuthenticated):
         return is_allowed_user
 
     def has_permission(self, request, view):
+        if request.user.is_anonymous:
+            raise UnauthorizedException
         if not self.is_token_valid(request=request):
             raise NotAuthenticated
         try:
@@ -77,17 +84,19 @@ class BaseRolePermission(BasePermission):
         is_allowed_user = True
         token = request.auth
         try:
-            print(user_id, token)
+            print('user_id = ', user_id, 'token = ', token)
             is_blackListed = BlackListedToken.objects.get(user=user_id, token=token)
             if is_blackListed:
                 is_allowed_user = False
         except BlackListedToken.DoesNotExist:
             is_allowed_user = True
-        print(is_allowed_user)
+        print('токен не в блэкличсте = ', is_allowed_user)
         return is_allowed_user
 
 
     def has_permission(self, request, view):
+        if request.user.is_anonymous:
+            raise UnauthorizedException
         if not self.is_token_valid(request=request):
             raise NotAuthenticated
         return self.permission_analyzer(request=request)
